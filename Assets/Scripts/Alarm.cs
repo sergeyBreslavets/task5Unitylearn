@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class AlarmSystem : MonoBehaviour
+public class Alarm : MonoBehaviour
 {
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private float _stepVolume = 0.1f;
@@ -35,8 +35,7 @@ public class AlarmSystem : MonoBehaviour
     {
         while (_audioSource.volume < _maxVolume)
         {
-            _audioSource.volume += _stepVolume;
-            yield return _sleepTime;
+            yield return ChangeVolume(_stepVolume);
         }
     }
 
@@ -44,12 +43,17 @@ public class AlarmSystem : MonoBehaviour
     {
         while (_audioSource.volume > _minVolume)
         {
-            _audioSource.volume -= _stepVolume;
-
-            if (_audioSource.volume <= _minVolume)
-                _audioSource.Pause();
-
-            yield return _sleepTime;
+            yield return ChangeVolume(-_stepVolume);
         }
+    }
+
+    private WaitForSeconds ChangeVolume(float stepVolume)
+    {
+        _audioSource.volume += stepVolume;
+
+        if (_audioSource.volume <= _minVolume)
+            _audioSource.Pause();
+
+        return _sleepTime;
     }
 }
