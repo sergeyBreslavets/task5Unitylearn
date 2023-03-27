@@ -12,6 +12,8 @@ public class Thief : MonoBehaviour
 
     private void Start()
     {
+        const string IsRun = "isRun";
+
         _points = new Transform[_path.childCount];
 
         for (int i = 0; i < _path.childCount; i++)
@@ -19,7 +21,7 @@ public class Thief : MonoBehaviour
             _points[i] = _path.GetChild(i);
         }
 
-        _animator.SetBool("isRun", true);
+        _animator.SetBool(IsRun, true);
     }
 
     private void Update()
