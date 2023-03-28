@@ -10,7 +10,8 @@ public class Alarm : MonoBehaviour
     private float _minVolume = 0;
     private float _timeStep = 1f;
     private WaitForSeconds _sleepTime;
-    private Coroutine _coroutineInceaseVolume;
+    private Coroutine _inceaseVolume;
+    private Coroutine _turnDownVolume;
 
     private void Start()
     {
@@ -19,41 +20,39 @@ public class Alarm : MonoBehaviour
 
     public void On()
     {
+        TryStopCoroutine(_turnDownVolume);
         _audioSource.Play();
-        _coroutineInceaseVolume = StartCoroutine(IncreaseVolume());
+        _inceaseVolume = StartVolumeCoroutine(_inceaseVolume, _maxVolume);
     }
 
     public void Off()
     {
-        if (_coroutineInceaseVolume != null)
-            StopCoroutine(_coroutineInceaseVolume);
-
-        StartCoroutine(TurnDownVolume());
+        TryStopCoroutine(_inceaseVolume);
+        _turnDownVolume = StartVolumeCoroutine(_turnDownVolume, _minVolume);
     }
 
-    private IEnumerator IncreaseVolume()
+    private Coroutine StartVolumeCoroutine(Coroutine curentCoroutine, float targetVolume)
     {
-        while (_audioSource.volume < _maxVolume)
+        TryStopCoroutine(curentCoroutine);
+        return StartCoroutine(ChangeVolume(targetVolume));
+    }
+
+    private void TryStopCoroutine(Coroutine coroutine)
+    {
+        if (coroutine != null)
+            StopCoroutine(coroutine);
+    }
+
+    private IEnumerator ChangeVolume(float targetVolume)
+    {
+        while (_audioSource.volume != targetVolume)
         {
-            yield return ChangeVolume(_stepVolume);
+            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _stepVolume);
+
+            if (_audioSource.volume <= _minVolume)
+                _audioSource.Pause();
+
+            yield return _sleepTime;
         }
-    }
-
-    private IEnumerator TurnDownVolume()
-    {
-        while (_audioSource.volume > _minVolume)
-        {
-            yield return ChangeVolume(-_stepVolume);
-        }
-    }
-
-    private WaitForSeconds ChangeVolume(float stepVolume)
-    {
-        _audioSource.volume += stepVolume;
-
-        if (_audioSource.volume <= _minVolume)
-            _audioSource.Pause();
-
-        return _sleepTime;
     }
 }
